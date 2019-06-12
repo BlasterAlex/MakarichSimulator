@@ -1,3 +1,6 @@
+# (c) 2019 BlasterAlex
+# MIT License
+
 #!/bin/bash
 
 # Папки для хранения файлов
@@ -5,38 +8,41 @@ rootDir=$HOME'/Документы/Тесты/'
 htmlDir=$rootDir'html/'
 pdfDir=$rootDir'pdf/'
 
-# Папка для хранения файлов
+# Папка для загрузок
 downDir=$HOME'/Загрузки/'
-if ! [ -d "$downDir" ]; then
-  echo "ERROR: Папка загрузок не найдена!"
-  exit
-fi
+
+# Список предметов
+subjects=('Diff' 'Matan' 'AOS')
 
 # Шаблон файлов для поиска
 tempName="content"
 tempExt="html"
+
+# Выбор предмета
+if [ -n "$1" ]; then # если есть параметры
+  sub=0 # номер предмета в массиве
+  for item in ${subjects[@]}; do
+    # Поиск предмета в массиве без учета регистра
+    if [ "${1,,}" = "${item,,}" ]; then break; fi 
+    ((++sub))
+  done
+  if [[ $sub == ${#subjects[*]} ]]; then 
+    echo "ERROR: Неизвестный параметр '$1'!" 
+    exit
+  fi
+else
+  echo "ERROR: Необходимо ввести название предмета!"
+  exit
+fi
 
 # Создать папки, если не найдены
 mkdir -p $rootDir
 mkdir -p $htmlDir
 mkdir -p $pdfDir
 
-# Список предметов
-subjects=('Diff' 'Matan' 'AOS')
-
-# Выбор предмета
-if [ -n "$1" ]; then # если есть параметры
-  case "$1" in
-    "diff")  sub=0 ;;
-    "matan") sub=1 ;;
-    "aos")   sub=2 ;;
-    *) 
-      echo "ERROR: Неизвестный параметр '$1'!" 
-      exit
-    ;;
-  esac
-else
-  echo "ERROR: Необходимо ввести название предмета!"
+# Проверка на существование папки загрузок
+if ! [ -d "$downDir" ]; then
+  echo "ERROR: Папка загрузок не найдена!"
   exit
 fi
 

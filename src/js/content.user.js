@@ -1,10 +1,7 @@
-// ==UserScript==
-// @name MakarichSimulator
-// @description Копирую ответы за вас 
-// @author Alex Pish
-// @license MIT
-// @version 1.3
-// ==/UserScript==
+/*
+ * (c) 2019 BlasterAlex
+ * MIT License
+ */
 
 // Загрузка файла
 function downloadFile(element, filename = '') {

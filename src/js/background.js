@@ -1,3 +1,8 @@
+/*
+ * (c) 2019 BlasterAlex
+ * MIT License
+ */
+
 // Инициализация переменной состояния
 chrome.storage.sync.get(['autoMode'], function (result) {
   if (result.autoMode === undefined) {

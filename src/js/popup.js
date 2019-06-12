@@ -1,3 +1,8 @@
+/*
+ * (c) 2019 BlasterAlex
+ * MIT License
+ */
+
 $(document).ready(function () {
 
   // Получение текущего режима состояния
@@ -14,15 +19,15 @@ $(document).ready(function () {
     if (this.checked === true) {
       chrome.browserAction.setIcon({
         path: {
-          "16": "/data/icons/active-icon-auto-16.png",
-          "32": "/data/icons/active-icon-auto-32.png"
+          "16": "/data/images/icons/active-icon-auto-16.png",
+          "32": "/data/images/icons/active-icon-auto-32.png"
         }
       });
     } else {
       chrome.browserAction.setIcon({
         path: {
-          "16": "/data/icons/active-icon-16.png",
-          "32": "/data/icons/active-icon-32.png"
+          "16": "/data/images/icons/active-icon-16.png",
+          "32": "/data/images/icons/active-icon-32.png"
         }
       });
     }

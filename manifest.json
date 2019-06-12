@@ -1,10 +1,10 @@
 {
   "name": "MakarichSimulator",
-  "version": "1.4",
+  "version": "1.04",
   "manifest_version": 2,
   "browser_action": {
     "default_title": "MakarichSimulator",
-    "default_icon": "data/icons/active-icon.png",
+    "default_icon": "data/images/icons/active-icon.png",
     "default_popup": "src/html/popup.html"
   },
   "background": {
@@ -36,8 +36,8 @@
     "tabs"
   ],
   "icons": {
-    "16": "data/icons/active-icon-16.png",
-    "48": "data/icons/active-icon.png",
-    "128": "data/icons/active-icon.png"
+    "16": "data/images/icons/active-icon-16.png",
+    "48": "data/images/icons/active-icon-48.png",
+    "128": "data/images/icons/active-icon-128.png"
   }
 }
