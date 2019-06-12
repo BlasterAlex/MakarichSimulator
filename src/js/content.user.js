@@ -67,135 +67,141 @@ function fullURL(element) { // полный url к картинкам
     return;
   }
 
-  // Получение текущего режима состояния
+  // Получение текущих режимов состояний
   chrome.storage.sync.get(['autoMode'], function (result) {
     autoMode = result.autoMode;
 
-    // Получение правильного ответа
-    var answ = $('p:contains("Правильный ответ:")')[1];
-    if (answ != undefined) { // если пользователь залогинился
-      // Если ответ разбит на несколько <p></p>
-      pUnion($(answ).closest("td"), answ);
-      // Скрыть ответ 
-      if (autoMode === false)
-        answ.style.display = "none";
-      // Полный url к картинкам
-      fullURL(answ);
+    chrome.storage.sync.get(['showMode'], function (result) {
+      showMode = result.showMode;
 
-      // Получение вопроса
-      var questTR = $($(answ).closest("tbody")).find('tr')[2];
-      if ($(questTR).find('p')[0] === undefined)
-        questTR = $($(answ).closest("tbody")).find('tr')[3];
-      var quest = $(questTR).find('p')[0];
-      // Если вопрос разбит на несколько <p></p>
-      pUnion(questTR, quest);
-      // Полный url к картинкам
-      fullURL(quest);
+      console.log("Auto: " + autoMode + " Show: " + showMode);
 
-      // Добавление красоты в стили
-      var css = 'button:hover{ opacity: 0.9; cursor: pointer }';
-      var style = document.createElement('style');
+      // Получение правильного ответа
+      var answ = $('p:contains("Правильный ответ:")')[1];
+      if (answ != undefined) { // если пользователь залогинился
+        // Если ответ разбит на несколько <p></p>
+        pUnion($(answ).closest("td"), answ);
+        // Скрыть ответ 
+        if (autoMode === false)
+          answ.style.display = "none";
+        // Полный url к картинкам
+        fullURL(answ);
 
-      if (style.styleSheet)
-        style.styleSheet.cssText = css;
-      else
-        style.appendChild(document.createTextNode(css));
+        // Получение вопроса
+        var questTR = $($(answ).closest("tbody")).find('tr')[2];
+        if ($(questTR).find('p')[0] === undefined)
+          questTR = $($(answ).closest("tbody")).find('tr')[3];
+        var quest = $(questTR).find('p')[0];
+        // Если вопрос разбит на несколько <p></p>
+        pUnion(questTR, quest);
+        // Полный url к картинкам
+        fullURL(quest);
 
-      document.getElementsByTagName('head')[0].appendChild(style);
+        // Добавление красоты в стили
+        var css = 'button:hover{ opacity: 0.9; cursor: pointer }';
+        var style = document.createElement('style');
 
-      if (autoMode === false) {
-        // Кнопка сохранения в файл
-        var button = document.createElement("BUTTON");
-        var t = document.createTextNode("Save it");
-        button.appendChild(t);
-        button.setAttribute("id", "saveIt");
-        button.setAttribute("type", "button");
-        button.setAttribute("style", "background-color: rgb(169, 245, 171); min-width: 100px; min-height: 30px;");
-        document.getElementsByName("gocomplete")[0].replaceWith(button);
+        if (style.styleSheet)
+          style.styleSheet.cssText = css;
+        else
+          style.appendChild(document.createTextNode(css));
 
-        // Кнопка отображения ответа
-        var showBtn = document.createElement("BUTTON");
-        var text = document.createTextNode("Show answer");
-        showBtn.appendChild(text);
-        showBtn.setAttribute("id", "showIt");
-        showBtn.setAttribute("type", "button");
-        showBtn.setAttribute("style", "background-color: rgb(173, 197, 255); min-width: 100px; min-height: 30px;");
-        button.parentElement.appendChild(showBtn);
-        button.parentElement.getElementsByTagName('BR')[1].remove();
+        document.getElementsByTagName('head')[0].appendChild(style);
 
-        // Отображение ответа
-        $('#showIt').click(function () {
-          if (answ.style.display === "none") {
-            answ.style.display = "block";
-            $('#showIt').text("Hide answer");
-          } else {
-            answ.style.display = "none";
-            $('#showIt').text("Show answer");
-          }
-        });
+        if (autoMode === false) {
+          // Кнопка сохранения в файл
+          var button = document.createElement("BUTTON");
+          var t = document.createTextNode("Save it");
+          button.appendChild(t);
+          button.setAttribute("id", "saveIt");
+          button.setAttribute("type", "button");
+          button.setAttribute("style", "background-color: rgb(169, 245, 171); min-width: 100px; min-height: 30px;");
+          document.getElementsByName("gocomplete")[0].replaceWith(button);
 
-        // Сохранение результатов
-        $('#saveIt').click(function () {
-          if (quest === undefined)
-            alert("Вопрос непонятен!");
-          else if (answ === undefined) {
-            alert("Ответ непонятен!");
-          } else {
-            // Отображение ответа
-            answ.style.display = "block";
+          // Кнопка отображения ответа
+          var showBtn = document.createElement("BUTTON");
+          var text = document.createTextNode("Show answer");
+          showBtn.appendChild(text);
+          showBtn.setAttribute("id", "showIt");
+          showBtn.setAttribute("type", "button");
+          showBtn.setAttribute("style", "background-color: rgb(173, 197, 255); min-width: 100px; min-height: 30px;");
+          button.parentElement.appendChild(showBtn);
+          button.parentElement.getElementsByTagName('BR')[1].remove();
 
-            // Создание блока с полученной информацией
-            var x = document.createElement("DIV");
-            x.appendChild(quest.cloneNode(true));
-            x.appendChild(answ.cloneNode(true));
-            document.body.appendChild(x);
+          // Отображение ответа
+          $('#showIt').click(function () {
+            if (answ.style.display === "none") {
+              answ.style.display = "block";
+              $('#showIt').text("Hide answer");
+            } else {
+              answ.style.display = "none";
+              $('#showIt').text("Show answer");
+            }
+          });
 
-            // Загрузка html файла 
-            downloadFile(x, 'content');
-            document.body.removeChild(x);
-
-            // Переход к следующему
-            document.getElementsByName("gonext")[0].click();
-          }
-        });
-      } else {
-        // Кнопка остановки процесса
-        var button = document.createElement("BUTTON");
-        var t = document.createTextNode("Stop it");
-        button.appendChild(t);
-        button.setAttribute("id", "stopIt");
-        button.setAttribute("type", "button");
-        button.setAttribute("style", "background-color: pink; min-width: 100px; min-height: 30px;");
-        document.getElementsByName("gocomplete")[0].replaceWith(button);
-
-        $('#stopIt').click(function () {
-          clearTimeout(Timer);
-        });
-        var Timer = setTimeout(function () { // если кнопка не нажата
           // Сохранение результатов
-          if (quest === undefined)
-            alert("Вопрос непонятен!");
-          else if (answ === undefined) {
-            alert("Ответ непонятен!");
-          } else {
-            // Отображение ответа
-            answ.style.display = "block";
+          $('#saveIt').click(function () {
+            if (quest === undefined)
+              alert("Вопрос непонятен!");
+            else if (answ === undefined) {
+              alert("Ответ непонятен!");
+            } else {
+              // Отображение ответа
+              answ.style.display = "block";
 
-            // Создание блока с полученной информацией
-            var x = document.createElement("DIV");
-            x.appendChild(quest.cloneNode(true));
-            x.appendChild(answ.cloneNode(true));
-            document.body.appendChild(x);
+              // Создание блока с полученной информацией
+              var x = document.createElement("DIV");
+              x.appendChild(quest.cloneNode(true));
+              x.appendChild(answ.cloneNode(true));
+              document.body.appendChild(x);
 
-            // Загрузка html файла 
-            downloadFile(x, 'content');
-            document.body.removeChild(x);
+              // Загрузка html файла 
+              downloadFile(x, 'content');
+              document.body.removeChild(x);
 
-            // Переход к следующему
-            document.getElementsByName("gonext")[0].click();
-          }
-        }, 2000);
+              // Переход к следующему
+              document.getElementsByName("gonext")[0].click();
+            }
+          });
+        } else {
+          // Кнопка остановки процесса
+          var button = document.createElement("BUTTON");
+          var t = document.createTextNode("Stop it");
+          button.appendChild(t);
+          button.setAttribute("id", "stopIt");
+          button.setAttribute("type", "button");
+          button.setAttribute("style", "background-color: pink; min-width: 100px; min-height: 30px;");
+          document.getElementsByName("gocomplete")[0].replaceWith(button);
+
+          $('#stopIt').click(function () {
+            clearTimeout(Timer);
+          });
+          var Timer = setTimeout(function () { // если кнопка не нажата
+            // Сохранение результатов
+            if (quest === undefined)
+              alert("Вопрос непонятен!");
+            else if (answ === undefined) {
+              alert("Ответ непонятен!");
+            } else {
+              // Отображение ответа
+              answ.style.display = "block";
+
+              // Создание блока с полученной информацией
+              var x = document.createElement("DIV");
+              x.appendChild(quest.cloneNode(true));
+              x.appendChild(answ.cloneNode(true));
+              document.body.appendChild(x);
+
+              // Загрузка html файла 
+              downloadFile(x, 'content');
+              document.body.removeChild(x);
+
+              // Переход к следующему
+              document.getElementsByName("gonext")[0].click();
+            }
+          }, 2000);
+        }
       }
-    }
+    });
   });
 })(window);

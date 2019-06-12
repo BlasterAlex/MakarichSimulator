@@ -5,13 +5,16 @@
 
 $(document).ready(function () {
 
-  // Получение текущего режима состояния
+  // Получение текущих режимов состояний
   chrome.storage.sync.get(['autoMode'], function (result) {
-    var autoMode = result.autoMode;
-    $("#cbx").prop("checked", autoMode);
+    $("#cbx").prop("checked", result.autoMode);
+  });
+
+  chrome.storage.sync.get(['showMode'], function (result) {
+    $("#cby").prop("checked", result.showMode);
   })
 
-  // Изменение состояния
+  // Изменение состояния autoMode
   $('#cbx').click(function () {
     chrome.storage.sync.set({
       autoMode: this.checked
@@ -32,7 +35,17 @@ $(document).ready(function () {
       });
     }
     chrome.storage.sync.get(['autoMode'], function (result) {
-      console.log('Mode currently is ' + result.autoMode);
+      console.log('autoMode currently is ' + result.autoMode);
+    })
+  });
+
+  // Изменение состояния showMode
+  $('#cby').click(function () {
+    chrome.storage.sync.set({
+      showMode: this.checked
+    });
+    chrome.storage.sync.get(['showMode'], function (result) {
+      console.log('showMode currently is ' + result.showMode);
     })
   });
 })

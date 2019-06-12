@@ -8,7 +8,7 @@
 MakarichSimulator - это расширение для браузера [Google Chrome](https://www.google.com/chrome/?hl=ru), предоставляющее пользователю удобный интерфейс для работы с образовательным порталом.
 
 # Установка
-Установка расширения в браузере Google Chrome:
+Установка расширения в браузере Google Chrome (необходимо включить `Режим разработчика`):
 
 <img src="data/gif/installation-1.gif" width="500"/><img src="data/gif/installation-2.gif" width="500"/>
 
