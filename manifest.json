@@ -1,0 +1,43 @@
+{
+  "name": "MakarichSimulator",
+  "version": "1.4",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_title": "MakarichSimulator",
+    "default_icon": "data/icons/active-icon.png",
+    "default_popup": "src/html/popup.html"
+  },
+  "background": {
+    "scripts": [
+      "src/js/background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "exclude_globs": [],
+      "include_globs": [
+        "*"
+      ],
+      "js": [
+        "src/js/jquery-3.4.1.min.js",
+        "src/js/content.user.js"
+      ],
+      "matches": [
+        "http://edu.tltsu.ru/md/trial.php*"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "converted_from_user_script": true,
+  "description": "Копирую ответы за вас",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "icons": {
+    "16": "data/icons/active-icon-16.png",
+    "48": "data/icons/active-icon.png",
+    "128": "data/icons/active-icon.png"
+  }
+}
