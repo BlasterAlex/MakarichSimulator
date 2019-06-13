@@ -12,7 +12,7 @@ pdfDir=$rootDir'pdf/'
 downDir=$HOME'/Загрузки/'
 
 # Список предметов
-subjects=('Diff' 'Matan' 'AOS')
+subjects=('Terver' 'Matan' 'AOS' 'OOP')
 
 # Шаблон файлов для поиска
 tempName="content"
@@ -62,12 +62,12 @@ else
       # Проверка на дублирование
       # без тега <p>, чтобы не учитывалась нумерация
       content=`cat "$file" | grep '<p>'`
-      content=`echo $content | sed 's/<p>//1'`
+      content=`echo "$content" | sed 's/<p>//1'`
       if [[ `cat "$target" | grep -c "$content"` == 0 ]]; then
         check=true
 
         # Получение номера последнего вопроса в файле  
-        number=`tac "$target" | grep -m 1 '<p>' | sed -n 's/.*<p>\([0-9]\+\)\..*/\1/p'`
+        number=`tac "$target" | sed -n 's/.*<p>\([0-9]\+\)\..*/\1/p' | head -1`
         ((number++))
 
         # Добавление номера к новому вопросу
