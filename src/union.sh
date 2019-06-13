@@ -57,6 +57,7 @@ else
     if ! [ -f "$htmlDir""${subjects[sub]}.html" ]; then
       cat "$file" | sed "0,/<p>/s//<p>1. /" | cat > "$target"
       rm "$file"
+      check=true
     else
       # Проверка на дублирование
       # без тега <p>, чтобы не учитывалась нумерация
