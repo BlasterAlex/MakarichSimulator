@@ -10,7 +10,10 @@ $(document).ready(function () {
   });
   chrome.storage.sync.get(['showMode'], function (result) {
     $("#cby").prop("checked", result.showMode);
-  })
+  });
+  chrome.storage.sync.get(['recoveryMode'], function (result) {
+    $("#cbz").prop("checked", result.recoveryMode);
+  });
 
   // Изменение состояния autoMode
   $('#cbx').click(function () {
@@ -29,5 +32,13 @@ $(document).ready(function () {
     chrome.storage.sync.set({
       showMode: this.checked
     });
+  });
+
+  // Изменение состояния recoveryMode
+  $('#cbz').click(function () {
+    chrome.storage.sync.set({
+      recoveryMode: this.checked
+    });
+    chrome.storage.sync.remove(['recoveryFile'], function () { });
   });
 })

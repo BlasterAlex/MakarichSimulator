@@ -18,6 +18,15 @@ chrome.storage.sync.get(['showMode'], function (result) {
     });
   }
 });
+chrome.storage.sync.get(['recoveryMode'], function (result) {
+  if (result.recoveryMode === undefined) {
+    chrome.storage.sync.set({
+      recoveryMode: false
+    });
+  }
+});
+// Освобождение памяти
+chrome.storage.sync.remove(['recoveryFile'], function () { });
 
 // Изменение значка при запуске скрипта
 function checkUrl() {
