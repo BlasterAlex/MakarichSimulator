@@ -245,16 +245,29 @@ function fullURL(element) {
                       else if (answ === undefined) {
                         alert("Ответ непонятен!");
                       } else {
+                        answ.style.display = "block";
                         let x = document.createElement("DIV");
                         x.appendChild(quest.cloneNode(true));
                         x.appendChild(answ.cloneNode(true));
 
-                        if (last != x.innerHTML) {
+                        console.log("File:   " + last);
+                        console.log("Curent: " + x.innerHTML);
+
+                        if (last.trim() != x.innerHTML) {
                           chrome.storage.sync.set({
                             recoveryFile: last
                           });
                           // Переход к следующему
                           document.getElementsByName("gonext")[0].click();
+                        } else {
+                          // Сообщение о завершении восстановления состояния
+                          let message = document.createElement("SPAN");
+                          let msg_text = document.createTextNode("Это последний вопрос в файле");
+                          message.appendChild(msg_text);
+                          message.setAttribute("style", "border-radius: 10px; background: rgb(196, 240, 192); padding: 10px;");
+                          $(answ).closest("td").prepend(message);
+                          // Освобождение памяти
+                          chrome.storage.sync.remove(['recoveryFile'], function () { });
                         }
                       }
                     });
@@ -282,13 +295,26 @@ function fullURL(element) {
                 else if (answ === undefined) {
                   alert("Ответ непонятен!");
                 } else {
+                  answ.style.display = "block";
                   let x = document.createElement("DIV");
                   x.appendChild(quest.cloneNode(true));
                   x.appendChild(answ.cloneNode(true));
 
-                  if (recoveryFile != x.innerHTML) {
+                  console.log("File:   " + recoveryFile);
+                  console.log("Curent: " + x.innerHTML);
+
+                  if (recoveryFile.trim() != x.innerHTML) {
                     // Переход к следующему
                     document.getElementsByName("gonext")[0].click();
+                  } else {
+                    // Сообщение о завершении восстановления состояния
+                    let message = document.createElement("SPAN");
+                    let msg_text = document.createTextNode("Это последний вопрос в файле");
+                    message.appendChild(msg_text);
+                    message.setAttribute("style", "border-radius: 10px; background: rgb(196, 240, 192); padding: 10px;");
+                    $(answ).closest("td").prepend(message);
+                    // Освобождение памяти
+                    chrome.storage.sync.remove(['recoveryFile'], function () { });
                   }
                 }
               }
