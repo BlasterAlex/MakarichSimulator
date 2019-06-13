@@ -4,12 +4,10 @@
  */
 
 $(document).ready(function () {
-
   // Получение текущих режимов состояний
   chrome.storage.sync.get(['autoMode'], function (result) {
     $("#cbx").prop("checked", result.autoMode);
   });
-
   chrome.storage.sync.get(['showMode'], function (result) {
     $("#cby").prop("checked", result.showMode);
   })
@@ -19,24 +17,11 @@ $(document).ready(function () {
     chrome.storage.sync.set({
       autoMode: this.checked
     });
-    if (this.checked === true) {
-      chrome.browserAction.setIcon({
-        path: {
-          "16": "/data/images/icons/active-icon-auto-16.png",
-          "32": "/data/images/icons/active-icon-auto-32.png"
-        }
-      });
-    } else {
-      chrome.browserAction.setIcon({
-        path: {
-          "16": "/data/images/icons/active-icon-16.png",
-          "32": "/data/images/icons/active-icon-32.png"
-        }
-      });
-    }
-    chrome.storage.sync.get(['autoMode'], function (result) {
-      console.log('autoMode currently is ' + result.autoMode);
-    })
+    // Отправка запроса на изменение иконки расширения
+    var port = chrome.extension.connect({
+      name: "Backend Communication"
+    });
+    port.postMessage("Check URL");
   });
 
   // Изменение состояния showMode
@@ -44,8 +29,5 @@ $(document).ready(function () {
     chrome.storage.sync.set({
       showMode: this.checked
     });
-    chrome.storage.sync.get(['showMode'], function (result) {
-      console.log('showMode currently is ' + result.showMode);
-    })
   });
 })

@@ -1,6 +1,6 @@
 {
   "name": "MakarichSimulator",
-  "version": "1.04",
+  "version": "1.05",
   "manifest_version": 2,
   "browser_action": {
     "default_title": "MakarichSimulator",
@@ -10,7 +10,8 @@
   "background": {
     "scripts": [
       "src/js/background.js"
-    ]
+    ],
+    "persistent": false
   },
   "content_scripts": [
     {

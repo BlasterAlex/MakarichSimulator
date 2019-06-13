@@ -1,12 +1,40 @@
+@font-face {
+    font-family: "MinistryOfMoron";
+    src: url("../fonts/MinistryOfMoron-Dvpx.ttf");
+}
+
 html, body {
   min-width: 320px;
-  height: 40px;
-  padding: 10px;
+  margin: 5px 5px 10px 5px;
 }
 
 .state {
   display: flex;
   justify-content: space-between;
+}
+
+.popup-head {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.popup-head img {
+  max-width: 25px;
+  align-self: center; 
+  margin-right: 5px;
+}
+
+.popup-head h1 {
+  font-family: "MinistryOfMoron";
+  color: rgb(109, 101, 146);
+  font-size: 19px;
+  margin: auto 0;
+  padding-top: 4px;
+  line-height: 25px;
+}
+
+.popup-head span {
+  color: rgb(132, 123, 172);
 }
 
 .toggle {

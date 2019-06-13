@@ -57,3 +57,16 @@ checkUrl();
 chrome.tabs.onActivated.addListener(function () {
   checkUrl();
 });
+
+// Изменение иконки расширения при обновлении url
+chrome.tabs.onUpdated.addListener(function () {
+  checkUrl();
+});
+
+// Изменение иконки расширения по запросу от popup
+chrome.extension.onConnect.addListener(function (port) {
+  port.onMessage.addListener(function (msg) {
+    if (msg === "Check URL")
+      checkUrl();
+  });
+});
