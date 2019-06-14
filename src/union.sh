@@ -62,7 +62,7 @@ else
       # Проверка на дублирование
       # без тега <p>, чтобы не учитывалась нумерация
       content=`cat "$file" | grep '<p>'`
-      content=`echo "$content" | sed 's/<p>//1'`
+      content=`echo $content | sed 's/<p>//1'`
       if [[ `cat "$target" | grep -c "$content"` == 0 ]]; then
         check=true
 
@@ -84,6 +84,9 @@ else
         # Удаление файла вопроса
         rm "$file"
         if [ -d "${file%.*}" ]; then rm -R "${file%.*}"; fi
+      else
+        # Если такой вопрос уже есть в файле
+        echo "MSG: Вопрос из файла '$file' уже существует"
       fi 
     fi
   done

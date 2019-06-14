@@ -30,7 +30,7 @@
     }
   ],
   "converted_from_user_script": true,
-  "description": "",
+  "description": "Копирую ответы за вас",
   "permissions": [
     "storage",
     "activeTab",
