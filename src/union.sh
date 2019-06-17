@@ -18,6 +18,20 @@ subjects=('Terver' 'Matan' 'AOS' 'OOP')
 tempName="content"
 tempExt="html"
 
+# Для отслеживания повторений
+saveFileName=false
+
+# Цветной вывод сообщения в консоль
+# $1 - тип сообщения (error, info)
+# $2 - текст сообщения
+output() { 
+  case "$1" in
+    'error') echo -e "\e[0;31mERROR: \e[0m $2" ;;
+    'info') echo -e "\e[0;36mINFO: \e[0m $2" ;;
+    *) echo "$1: $2" ;;
+  esac 
+}
+
 # Выбор предмета
 if [ -n "$1" ]; then # если есть параметры
   sub=0 # номер предмета в массиве
@@ -27,11 +41,11 @@ if [ -n "$1" ]; then # если есть параметры
     ((++sub))
   done
   if [[ $sub == ${#subjects[*]} ]]; then 
-    echo "ERROR: Неизвестный параметр '$1'!" 
+    output 'error' "Неизвестный параметр '$1'!" 
     exit
   fi
 else
-  echo "ERROR: Необходимо ввести название предмета!"
+  output 'error' 'Необходимо ввести название предмета!'
   exit
 fi
 
@@ -42,20 +56,22 @@ mkdir -p $pdfDir
 
 # Проверка на существование папки загрузок
 if ! [ -d "$downDir" ]; then
-  echo "ERROR: Папка загрузок не найдена!"
+  output 'error' 'Папка загрузок не найдена!'
   exit
 fi
 
 # Проход по файлам в загрузках
 target="$htmlDir""${subjects[sub]}.html"
 check=fasle
-if [[ `find "$downDir" -name "$tempName"*."$tempExt" | wc -l` == 0 ]]; then
-  echo "В загрузках нет новых файлов"
+if [[ `find "$downDir" -maxdepth 1 -name "$tempName*.$tempExt" | wc -l` == 0 ]]; then
+  output 'info' 'В загрузках нет новых файлов'
 else
   for file in "$downDir""$tempName"*."$tempExt"; do
     # Если в папке еще нет файла по этому предмету
     if ! [ -f "$htmlDir""${subjects[sub]}.html" ]; then
-      cat "$file" | sed "0,/<p>/s//<p>1. /" | cat > "$target"
+      if [[ $saveFileName != true ]]; then cat "$file" | sed "0,/<p>/s//<p>1. /" > "$target"
+      else cat "$file" | sed "0,/<p>/s//<p>1. /" | sed "0,/<\/body>/s//  <p><b>Файл: <\/b>${file##*/}<\/p>\n<\/body>/" > "$target"
+      fi
       rm "$file"
       check=true
     else
@@ -70,8 +86,10 @@ else
         number=`tac "$target" | grep -o -m 1 '<p>[0-9]\+\. ' | sed 's/<p>\(.*\)\./\1/'`
         ((number++))
 
-        # Добавление номера к новому вопросу
-        cat "$file" | sed "0,/<p>/s//<p>$number. /" | cat > "$file"'t'
+        # Добавление номера и имени файла к новому вопросу
+        if [[ $saveFileName != true ]]; then cat "$file" | sed "0,/<p>/s//<p>$number. /" > "$file"'t'
+        else cat "$file" | sed "0,/<p>/s//<p>$number. /" | sed "0,/<\/body>/s//  <p><b>Файл: <\/b>${file##*/}<\/p>\n<\/body>/" > "$file"'t'
+        fi
         mv "$file"'t' "$file"
 
         # Добавление отступа
@@ -81,20 +99,20 @@ else
         cat "$target" "$file" > "$htmlDir"'temp'
         mv "$htmlDir"'temp' "$target"
 
-        # Удаление файла вопроса
+        # Удаление файла вопроса и папки, если она есть
         rm "$file"
         if [ -d "${file%.*}" ]; then rm -R "${file%.*}"; fi
       else
         # Если такой вопрос уже есть в файле
-        echo "MSG: Вопрос из файла '$file' уже существует"
+        output 'info' "Вопрос из файла '$file' уже существует"
       fi 
     fi
   done
   # Конвертирование в pdf
   if [[ $check == true ]]; then
-    echo "Конвертирование..."
+    output 'info' 'Конвертирование...'
     wkhtmltopdf "$target" "$pdfDir""${subjects[sub]}.pdf"
   else
-    echo "В загрузках нет новых файлов"
+    output 'info' 'В загрузках нет новых файлов'
   fi
 fi
