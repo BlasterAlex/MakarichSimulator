@@ -8,13 +8,19 @@ function getData(callback) {
   let data = new Object();
   chrome.storage.sync.get(['autoMode'], function (result) {
     data.autoMode = result.autoMode;
-    chrome.storage.sync.get(['showMode'], function (result) {
-      data.showMode = result.showMode;
-      chrome.storage.sync.get(['recoveryMode'], function (result) {
-        data.recoveryMode = result.recoveryMode;
-        chrome.storage.sync.get(['recoveryFile'], function (result) {
-          data.recoveryFile = result.recoveryFile;
-          callback(data);
+    chrome.storage.sync.get(['rememberFirst'], function (result) {
+      data.rememberFirst = result.rememberFirst;
+      chrome.storage.sync.get(['showMode'], function (result) {
+        data.showMode = result.showMode;
+        chrome.storage.sync.get(['recoveryMode'], function (result) {
+          data.recoveryMode = result.recoveryMode;
+          chrome.storage.sync.get(['recoveryFile'], function (result) {
+            data.recoveryFile = result.recoveryFile;
+            chrome.storage.sync.get(['keepedFile'], function (result) {
+              data.keepedFile = result.keepedFile;
+              callback(data);
+            });
+          });
         });
       });
     });
@@ -194,27 +200,115 @@ function notification(parent, info) {
           clearTimeout(Timer);
         });
 
-        // Таймер для ожидания нажатия кнопки остановки 
-        let Timer = setTimeout(function () {
-          // Если кнопка не нажата => сохранение результатов
-          if (isDefined(quest, answ)) {
-            // Отображение ответа
-            answ.style.display = "block";
+        // Режим сохранения первого вопроса
+        if (data.rememberFirst === true) {
+          // Если это первый вопрос в серии
+          if (data.keepedFile === undefined) {
+            if (confirm("Сейчас мы начнем закидывать вас файликами с вопросами.\n" +
+              "Вы готовы к такому повороту событий?")) { // пользователь нажал 'Ok'
+              // Таймер для ожидания нажатия кнопки остановки 
+              // Сообщение пользователю о начале прохода
+              notification($(answ).closest("td"), {
+                text: "Обратный отсчет...2...1",
+                color: "rgb(196, 240, 192)"
+              });
+              var Timer = setTimeout(function () {
+                // Если кнопка не нажата => сохранение результатов
+                if (isDefined(quest, answ)) {
+                  // Отображение ответа
+                  answ.style.display = "block";
 
-            // Создание блока с полученной информацией
-            let x = document.createElement("DIV");
-            x.appendChild(quest.cloneNode(true));
-            x.appendChild(answ.cloneNode(true));
-            document.body.appendChild(x);
+                  // Создание блока с полученной информацией
+                  let x = document.createElement("DIV");
+                  x.appendChild(quest.cloneNode(true));
+                  x.appendChild(answ.cloneNode(true));
+                  document.body.appendChild(x);
 
-            // Загрузка html файла 
-            downloadFile(x, 'content');
-            document.body.removeChild(x);
+                  // Вывод в консоль для проверки
+                  console.log("Remember:" + x.innerHTML);
 
-            // Переход к следующему
-            document.getElementsByName("gonext")[0].click();
+                  // Запомнить текущий вопрос
+                  chrome.storage.sync.set({
+                    keepedFile: x.innerHTML
+                  });
+
+                  // Загрузка html файла 
+                  downloadFile(x, 'content');
+                  document.body.removeChild(x);
+
+                  // Переход к следующему
+                  document.getElementsByName("gonext")[0].click();
+                }
+              }, 2000);
+            } else { // пользователь нажал 'Cancel'
+              // Сообщение пользователю о завершении
+              notification($(answ).closest("td"), {
+                text: "Вы многое потеряли, но мы не в обиде",
+                color: "rgb(255, 128, 128)"
+              });
+            }
+          } else { // вопрос сохранен, происходит сравнение с текущим вопросом
+            // Таймер для ожидания нажатия кнопки остановки 
+            var Timer = setTimeout(function () {
+              // Если кнопка не нажата => сохранение результатов
+              if (isDefined(quest, answ)) {
+                // Отображение ответа
+                answ.style.display = "block";
+
+                // Создание блока с полученной информацией
+                let x = document.createElement("DIV");
+                x.appendChild(quest.cloneNode(true));
+                x.appendChild(answ.cloneNode(true));
+
+                // Вывод в консоль для проверки
+                console.log("Keeped:" + data.keepedFile);
+                console.log("Curent:" + x.innerHTML);
+
+                // Сравнение текущего вопроса и сохраненным
+                if (data.keepedFile != x.innerHTML) {
+                  // Загрузка html файла 
+                  document.body.appendChild(x);
+                  downloadFile(x, 'content');
+                  document.body.removeChild(x);
+
+                  // Переход к следующему
+                  document.getElementsByName("gonext")[0].click();
+                } else {
+                  // Сообщение о завершении прохода
+                  notification($(answ).closest("td"), {
+                    text: "С этого вопроса мы начали, всего наилучшего",
+                    color: "rgb(196, 240, 192)"
+                  });
+
+                  // Освобождение памяти
+                  chrome.storage.sync.remove(['keepedFile'], function () { });
+                }
+              }
+            }, 2000);
           }
-        }, 2000);
+        } else { // обычный авто-режим без проверок
+          // Таймер для ожидания нажатия кнопки остановки 
+          var Timer = setTimeout(function () {
+            // Если кнопка не нажата => сохранение результатов
+            if (isDefined(quest, answ)) {
+              // Отображение ответа
+              answ.style.display = "block";
+
+              // Создание блока с полученной информацией
+              let x = document.createElement("DIV");
+              x.appendChild(quest.cloneNode(true));
+              x.appendChild(answ.cloneNode(true));
+              document.body.appendChild(x);
+
+              // Загрузка html файла 
+              downloadFile(x, 'content');
+              document.body.removeChild(x);
+
+              // Переход к следующему
+              document.getElementsByName("gonext")[0].click();
+            }
+          }, 2000);
+        }
       }
 
       // Не показывать правильный ответ

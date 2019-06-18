@@ -8,11 +8,7 @@ html, body {
   margin: 5px 5px 10px 5px;
 }
 
-.state {
-  display: flex;
-  justify-content: space-between;
-}
-
+/* Лого */
 .popup-head {
   display: flex;
   margin-bottom: 10px;
@@ -35,6 +31,12 @@ html, body {
 
 .popup-head span {
   color: rgb(132, 123, 172);
+}
+
+/* Чекбоксы */
+.state {
+  display: flex;
+  justify-content: space-between;
 }
 
 .toggle {
@@ -85,23 +87,22 @@ html, body {
   pointer-events: none;
 }
 
-#cbx:checked + .toggle:before, #cby:checked + .toggle:before, #cbz:checked + .toggle:before, {
+.state input:checked + .toggle:before {
   background: #947ADA;
 }
-#cbx:checked + .toggle span, #cby:checked + .toggle span, #cbz:checked + .toggle span {
+.state input:checked + .toggle span {
   background: #4F2EDC;
   transform: translateX(20px);
   transition: all 0.2s cubic-bezier(0.8, 0.4, 0.3, 1.25);
   box-shadow: 0 3px 8px rgba(79, 46, 220, 0.2);
 }
-#cbx:checked + .toggle span:before, #cby:checked + .toggle span:before, #cbz:checked + .toggle span:before {
+.state input:checked + .toggle span:before {
   transform: scale(1);
   opacity: 0;
   transition: all 0.4s ease;
 }
 
-.center {
-  position: absolute;
-  top: calc(50% - 10px);
-  left: calc(50% - 20px);
+/* Скрытый чекбокс */
+#keepParent {
+  color: rgb(83, 83, 83);
 }

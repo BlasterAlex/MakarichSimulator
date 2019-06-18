@@ -11,6 +11,13 @@ chrome.storage.sync.get(['autoMode'], function (result) {
     });
   }
 });
+chrome.storage.sync.get(['rememberFirst'], function (result) {
+  if (result.rememberFirst === undefined) {
+    chrome.storage.sync.set({
+      rememberFirst: false
+    });
+  }
+});
 chrome.storage.sync.get(['showMode'], function (result) {
   if (result.showMode === undefined) {
     chrome.storage.sync.set({
@@ -27,6 +34,7 @@ chrome.storage.sync.get(['recoveryMode'], function (result) {
 });
 // Освобождение памяти
 chrome.storage.sync.remove(['recoveryFile'], function () { });
+chrome.storage.sync.remove(['keepedFile'], function () { });
 
 // Изменение значка при запуске скрипта
 function checkUrl() {
