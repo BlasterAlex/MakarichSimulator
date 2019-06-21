@@ -29,6 +29,8 @@ function getData(callback) {
 
 // Скачивание html файла
 function downloadFile(element, filename = '') {
+  document.body.appendChild(element);
+
   let html = `<body>
   ${element.innerHTML}
 </body>`;
@@ -56,6 +58,7 @@ function downloadFile(element, filename = '') {
     downloadLink.click();
   }
   document.body.removeChild(downloadLink);
+  document.body.removeChild(element);
 }
 
 // Загрузка локального файла
@@ -67,18 +70,55 @@ function readFile(file, onLoadCallback) {
 
 // Объединение текста, если он разбит на несколько <p></p>
 function pUnion(from, to) {
+  // Проход по тегам <p>
   let i = 0, p = $(from).find('p')[++i];
   while ($(p).text().length > 0) {
     $(to).append($(p));
     p = $(from).find('p')[++i];
   }
+  // Проход по полям таблицы, если она есть
+  let table = $(from).find('table');
+  if (table.length != 0) {
+    // Если в таблице есть элементы p
+    let fields = table.find('p');
+    if (fields.length != 0)
+      $(fields).each(function () {
+        $(to).append(this);
+      });
+  }
+}
+
+// Проверка на доступность url
+function urlExists(url, callback) {
+  $.ajax({
+    type: 'HEAD',
+    url: url,
+    success: function () {
+      callback(true, url);
+    },
+    error: function () {
+      callback(false);
+    }
+  });
 }
 
 // Полный url к картинкам
 function fullURL(element) {
-  $(element).find('img').each(function () {
+  $(element).find('img').each(function (index, item) {
     let src = $(this).attr('src');
-    $(this).attr('src', "http://edu.tltsu.ru" + src);
+    urlExists(src, function (exists, src) {
+      if (exists) { // если URL доступен
+        $(item).attr('src', "http://edu.tltsu.ru" + src);
+      } else { // проверить на наличие alt
+        let alt = $(item).attr('alt');
+        if (alt != undefined)
+          $(item).attr('src', alt);
+        else { // невозможно получить доступ к картинке
+          console.log("Кажется, с картинкой '" + $(item).attr('src') + "' что-то не так");
+          $(item).attr('src', "http://edu.tltsu.ru" + src);
+        }
+      }
+    });
   });
 }
 
@@ -96,11 +136,66 @@ function isDefined(quest, answ) {
 
 // Сообщение в цветном блоке
 function notification(parent, info) {
-  let message = document.createElement("SPAN");
-  let msg_text = document.createTextNode(info.text);
-  message.appendChild(msg_text);
-  message.setAttribute("style", "border-radius: 10px; background: " + info.color + "; padding: 10px;");
+  var message = document.createElement("SPAN");
+  message.appendChild(document.createTextNode(info.text));
+  switch (info.type) { // стилизация
+    case 'success':
+      message.setAttribute("style", "border-radius: 10px; background: rgb(216, 255, 207); padding: 10px; transform: translateY(-5px); box-shadow: 0 1px 15px rgba(0, 0, 0, 0.15);");
+      break;
+    case 'error':
+      message.setAttribute("style", "border-radius: 10px; background: pink; padding: 10px; transform: translateY(-5px); box-shadow: 0 1px 15px rgba(0, 0, 0, 0.15);");
+      break;
+    default:
+      message.setAttribute("style", "border-radius: 10px; background: rgb(245, 214, 255); padding: 10px; transform: translateY(-5px); box-shadow: 0 1px 15px rgba(0, 0, 0, 0.15);");
+      break;
+  }
+  // Появление сообщения
+  $(message).hide();
   parent.prepend(message);
+  $(message).fadeIn(350);
+  // Удаление сообщения 
+  setTimeout(function () {
+    $(message).slideUp(350, function () {
+      message.remove();
+    });
+  }, 8000);
+}
+
+// Создание кнопки
+function createButton(id, parent) {
+  let button = document.createElement('BUTTON');
+  button.setAttribute("id", id);
+  button.setAttribute("type", "button");
+  switch (id) {
+    case 'saveIt':
+      button.appendChild(document.createTextNode('Save it'));
+      button.setAttribute('style', 'background-color: rgb(204, 255, 203)');
+      document.getElementsByName("gocomplete")[0].replaceWith(button);
+      break;
+    case 'stopIt':
+      button.appendChild(document.createTextNode('Stop it'));
+      button.setAttribute('style', 'background-color: pink');
+      document.getElementsByName("gocomplete")[0].replaceWith(button);
+      break;
+    case 'showIt':
+      button.appendChild(document.createTextNode("Show answer"));
+      button.setAttribute('style', 'background-color: rgb(173, 197, 255)');
+      parent.appendChild(button);
+      parent.getElementsByTagName('BR')[1].remove();
+      break;
+    case 'recovery':
+      button.appendChild(document.createTextNode("Upload file"));
+      if (parent.getElementsByTagName('BR')[1] != undefined) {
+        parent.getElementsByTagName('BR')[1].remove();
+        button.setAttribute("style", "background-color: rgb(243, 247, 124);");
+      } else
+        button.setAttribute("style", "background-color: rgb(243, 247, 124); margin-left: 8px");
+      parent.appendChild(button);
+      break;
+  }
+  $(button).hide();
+  $(button).fadeIn(350);
+  return button;
 }
 
 // Главная функция
@@ -145,8 +240,25 @@ function notification(parent, info) {
 
       // Стили для кнопок на сайте
       let css =
-        'button{ min-width: 100px; min-height: 30px; margin-bottom: 10px }\n' +
-        'button:hover{ opacity: 0.9; cursor: pointer }';
+        "button {\n" +
+        " min-width: 100px;\n" +
+        " min-height: 30px;\n" +
+        " margin-bottom: 10px;\n" +
+        " border: none;\n" +
+        " border-radius: 1em;\n" +
+        " transition: all 0.2s;\n" +
+        "}\n" +
+        "\n" +
+        "button:hover, button:active {\n" +
+        " opacity: 0.9;\n" +
+        " cursor: pointer;\n" +
+        " outline:none !important;\n" +
+        " border: none;\n" +
+        " box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);\n" +
+        " transform: translateY(-2px);\n" +
+        "}\n" +
+        "\n" +
+        "button:focus { outline:none !important; border: none; }";
       let style = document.createElement('style');
       if (style.styleSheet)
         style.styleSheet.cssText = css;
@@ -157,13 +269,7 @@ function notification(parent, info) {
       // Ручной режим
       if (data.autoMode === false) {
         // Кнопка сохранения в файл
-        var button = document.createElement("BUTTON");
-        let t = document.createTextNode("Save it");
-        button.appendChild(t);
-        button.setAttribute("id", "saveIt");
-        button.setAttribute("type", "button");
-        button.setAttribute("style", "background-color: rgb(169, 245, 171)");
-        document.getElementsByName("gocomplete")[0].replaceWith(button);
+        var buttons = createButton('saveIt').parentElement;
 
         // Сохранение результатов
         $('#saveIt').click(function () {
@@ -175,11 +281,9 @@ function notification(parent, info) {
             let x = document.createElement("DIV");
             x.appendChild(quest.cloneNode(true));
             x.appendChild(answ.cloneNode(true));
-            document.body.appendChild(x);
 
             // Загрузка html файла 
             downloadFile(x, 'content');
-            document.body.removeChild(x);
 
             // Переход к следующему
             document.getElementsByName("gonext")[0].click();
@@ -187,18 +291,7 @@ function notification(parent, info) {
         });
       } else { // автоматический режим
         // Кнопка остановки процесса
-        var button = document.createElement("BUTTON");
-        let t = document.createTextNode("Stop it");
-        button.appendChild(t);
-        button.setAttribute("id", "stopIt");
-        button.setAttribute("type", "button");
-        button.setAttribute("style", "background-color: pink");
-        document.getElementsByName("gocomplete")[0].replaceWith(button);
-
-        // Остановить процесс
-        $('#stopIt').click(function () {
-          clearTimeout(Timer);
-        });
+        var buttons = createButton('stopIt').parentElement;
 
         // Режим сохранения первого вопроса
         if (data.rememberFirst === true) {
@@ -209,8 +302,7 @@ function notification(parent, info) {
               // Таймер для ожидания нажатия кнопки остановки 
               // Сообщение пользователю о начале прохода
               notification($(answ).closest("td"), {
-                text: "Обратный отсчет...2...1",
-                color: "rgb(196, 240, 192)"
+                text: 'Обратный отсчет...2...1'
               });
               var Timer = setTimeout(function () {
                 // Если кнопка не нажата => сохранение результатов
@@ -222,7 +314,6 @@ function notification(parent, info) {
                   let x = document.createElement("DIV");
                   x.appendChild(quest.cloneNode(true));
                   x.appendChild(answ.cloneNode(true));
-                  document.body.appendChild(x);
 
                   // Вывод в консоль для проверки
                   console.log("Remember:" + x.innerHTML);
@@ -234,7 +325,6 @@ function notification(parent, info) {
 
                   // Загрузка html файла 
                   downloadFile(x, 'content');
-                  document.body.removeChild(x);
 
                   // Переход к следующему
                   document.getElementsByName("gonext")[0].click();
@@ -243,8 +333,8 @@ function notification(parent, info) {
             } else { // пользователь нажал 'Cancel'
               // Сообщение пользователю о завершении
               notification($(answ).closest("td"), {
-                text: "Вы многое потеряли, но мы не в обиде",
-                color: "rgb(255, 128, 128)"
+                type: 'error',
+                text: 'Вы многое потеряли, но мы не в обиде'
               });
             }
           } else { // вопрос сохранен, происходит сравнение с текущим вопросом
@@ -267,17 +357,15 @@ function notification(parent, info) {
                 // Сравнение текущего вопроса и сохраненным
                 if (data.keepedFile != x.innerHTML) {
                   // Загрузка html файла 
-                  document.body.appendChild(x);
                   downloadFile(x, 'content');
-                  document.body.removeChild(x);
 
                   // Переход к следующему
                   document.getElementsByName("gonext")[0].click();
                 } else {
                   // Сообщение о завершении прохода
                   notification($(answ).closest("td"), {
-                    text: "С этого вопроса мы начали, всего наилучшего",
-                    color: "rgb(196, 240, 192)"
+                    type: 'success',
+                    text: 'С этого вопроса мы начали, всего наилучшего'
                   });
 
                   // Освобождение памяти
@@ -298,39 +386,39 @@ function notification(parent, info) {
               let x = document.createElement("DIV");
               x.appendChild(quest.cloneNode(true));
               x.appendChild(answ.cloneNode(true));
-              document.body.appendChild(x);
 
               // Загрузка html файла 
               downloadFile(x, 'content');
-              document.body.removeChild(x);
 
               // Переход к следующему
               document.getElementsByName("gonext")[0].click();
             }
           }, 2000);
         }
+
+        // Остановить процесс
+        $('#stopIt').click(function () {
+          clearTimeout(Timer);
+          notification($(answ).closest("td"), {
+            type: 'success',
+            text: 'Процесс остановлен, обновите страницу, чтобы продолжить'
+          });
+        });
+
       }
 
       // Не показывать правильный ответ
       if (data.showMode === true) {
         // Кнопка отображения / скрытия ответа
-        let showBtn = document.createElement("BUTTON");
-        let text = document.createTextNode("Show answer");
-        showBtn.appendChild(text);
-        showBtn.setAttribute("id", "showIt");
-        showBtn.setAttribute("type", "button");
-        showBtn.setAttribute("style", "background-color: rgb(173, 197, 255);");
-        button.parentElement.appendChild(showBtn);
-        button.parentElement.getElementsByTagName('BR')[1].remove();
-
+        createButton('showIt', buttons);
         // Отображение ответа
         $('#showIt').click(function () {
-          if (answ.style.display === "none") {
-            answ.style.display = "block";
-            $('#showIt').text("Hide answer");
+          if (answ.style.display === 'none') {
+            $(this).text('Hide answer');
+            $(answ).slideDown(350);
           } else {
-            answ.style.display = "none";
-            $('#showIt').text("Show answer");
+            $(this).text('Show answer');
+            $(answ).slideUp(350);
           }
         });
       }
@@ -340,17 +428,7 @@ function notification(parent, info) {
         // Если файл для проверки не загружен
         if (data.recoveryFile === undefined) {
           // Кнопка для показа формы
-          let recBtn = document.createElement("BUTTON");
-          let text = document.createTextNode("Upload file");
-          recBtn.appendChild(text);
-          recBtn.setAttribute("id", "recovery");
-          recBtn.setAttribute("type", "button");
-          if (button.parentElement.getElementsByTagName('BR')[1] != undefined) {
-            button.parentElement.getElementsByTagName('BR')[1].remove();
-            recBtn.setAttribute("style", "background-color: rgb(243, 247, 124);");
-          } else
-            recBtn.setAttribute("style", "background-color: rgb(243, 247, 124); margin-left: 8px");
-          button.parentElement.appendChild(recBtn);
+          createButton('recovery', buttons);
 
           // Блок загрузки файла
           let uploadForm = document.createElement("DIV");
@@ -359,11 +437,10 @@ function notification(parent, info) {
 
           // Поле с информацией
           let textField = document.createElement("SPAN");
-          let textFieldMsg = document.createTextNode(
+          textField.appendChild(document.createTextNode(
             "Загрузите ваш html файл с вопросами, чтобы мы могли узнать," +
             "\n на чем вы остановились в прошлый раз"
-          );
-          textField.appendChild(textFieldMsg);
+          ));
           textField.setAttribute("style", "color: rgb(140, 136, 136); white-space: pre-line;");
           uploadForm.appendChild(textField);
           uploadForm.appendChild(document.createElement("BR"));
@@ -376,17 +453,17 @@ function notification(parent, info) {
           uploadForm.appendChild(document.createElement("BR"));
           uploadForm.appendChild(input);
 
-          button.parentElement.appendChild(uploadForm);
+          buttons.appendChild(uploadForm);
           uploadForm.style.display = "none";
 
           // Отображение формы для загрузки файла
           $('#recovery').click(function () {
             if (uploadForm.style.display === "none") {
-              uploadForm.style.display = "block";
-              $('#recovery').text("Hide form");
+              $(this).text('Hide form');
+              $(uploadForm).fadeIn(350);
             } else {
-              uploadForm.style.display = "none";
-              $('#recovery').text("Upload file");
+              $(this).text('Upload file');
+              $(uploadForm).slideUp(350);
             }
           });
 
@@ -409,7 +486,7 @@ function notification(parent, info) {
                   x.appendChild(quest.cloneNode(true));
                   x.appendChild(answ.cloneNode(true));
                   // Вывод в консоль для проверки
-                  console.log("File:   " + last);
+                  console.log("File:   " + last.trim());
                   console.log("Curent: " + x.innerHTML);
                   // Сравнение текущего вопроса и последнего вопроса в файле
                   if (last.trim() != x.innerHTML) {
@@ -425,16 +502,17 @@ function notification(parent, info) {
                     } else {
                       // Сообщение пользователю
                       notification($(answ).closest("td"), {
-                        text: "Вы отказались от восстановления состояния теста",
-                        color: "rgb(255, 128, 128)"
+                        type: 'error',
+                        text: 'Вы отказались от восстановления состояния теста'
                       });
-                      uploadForm.style.display = "none";
+                      $('#recovery').text('Show answer');
+                      $(uploadForm).slideUp(350);
                     }
                   } else {
                     // Сообщение о завершении восстановления состояния теста
                     notification($(answ).closest("td"), {
-                      text: "Это последний вопрос в файле",
-                      color: "rgb(196, 240, 192)"
+                      type: 'success',
+                      text: 'Это последний вопрос в файле'
                     });
                     // Освобождение памяти
                     chrome.storage.sync.remove(['recoveryFile'], function () { });
@@ -446,8 +524,7 @@ function notification(parent, info) {
         } else { // файл для проверки загружен, идет процесс восстановления состояния
           // Сообщение пользователю
           notification($(answ).closest("td"), {
-            text: "Меня можно остановить, если убрать галочку в меню",
-            color: "rgb(255, 128, 128)"
+            text: 'Меня можно остановить, если убрать галочку в меню'
           });
           if (isDefined(quest, answ)) {
             // Создание блока с полученной информацией
@@ -455,9 +532,11 @@ function notification(parent, info) {
             let x = document.createElement("DIV");
             x.appendChild(quest.cloneNode(true));
             x.appendChild(answ.cloneNode(true));
+
             // Вывод в консоль для проверки
-            console.log("File:   " + data.recoveryFile);
+            console.log("File:   " + data.recoveryFile.trim());
             console.log("Curent: " + x.innerHTML);
+
             // Сравнение текущего вопроса и последнего вопроса в файле
             if (data.recoveryFile.trim() != x.innerHTML) {
               // Переход к следующему
@@ -465,8 +544,8 @@ function notification(parent, info) {
             } else {
               // Сообщение о завершении восстановления состояния теста
               notification($(answ).closest("td"), {
-                text: "Это последний вопрос в файле",
-                color: "rgb(196, 240, 192)"
+                type: 'success',
+                text: 'Это последний вопрос в файле'
               });
               // Освобождение памяти
               chrome.storage.sync.remove(['recoveryFile'], function () { });
